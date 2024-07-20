@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "bst.h"
-#include "linked-list.h"
-
+#include <stdbool.h>
+#include <string.h> 
+#include "bst.c"
 
 
 
@@ -38,18 +38,48 @@ typedef struct {
 } TOKEN;
 
 
+typedef struct Node {
+    char* value;
+    struct Node* next;
+} Node;
 
-int check_for_unique(char value){
-    if (value == "for") {
-        return 0;
-    }
-    else if (value == "in") {
-        return 0;
-    }
+Node* head = NULL;
 
-    return 1;
+
+void add_value(char* value) {
+    Node* new_node = (Node*)malloc(sizeof(Node));
+    new_node->value = strdup(value);
+    new_node->next = NULL;
+
+    if (head == NULL) {
+        head = new_node;
+    } else {
+        Node* current = head;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new_node;
+    }
 }
 
+
+char* get_last_value() {
+    if (head == NULL) {
+        printf("Linked list is empty.\n");
+        return NULL;
+    }
+
+    Node* current = head;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+
+    return current->value;
+}
+
+
+#include <stdio.h>
+#include <ctype.h> // Required for isalnum and isalpha functions
 
 int main() {
     FILE *file;
@@ -64,39 +94,66 @@ int main() {
 
     // Read the file line by line
     while (fgets(line, sizeof(line), file)) {
-        // Loop through each character in the line
         char value[256];
         int valueIndex = 0;
+        int capturing_value = 0; // Flag to start capturing the value after '='
+        int captured = 0;
 
         for (int i = 0; line[i] != '\0'; i++) {
-            // Print each character
-            printf("Character: %c\n", line[i]);
-
-            // If the character is alphabetic, append it to the value array
-            if (isalpha(line[i])) {
-                value[valueIndex++] = line[i];
-            } else {
-                // If the value array has any alphabetic characters, null-terminate and print it
+            // Handling character by character
+            if (line[i] == '=') {
                 if (valueIndex > 0) {
-                    value[valueIndex] = '\0'; // Null-terminate the string
+                    value[valueIndex] = '\0';
                     printf("Alphabetic sequence: %s\n", value);
-                    if (check_for_keyword(value)) {
-                        extern Node* root;  // BST root declared in bst.c
-                        LinkedList *list = (LinkedList*)malloc(sizeof(LinkedList));
-                        list->head = NULL;
-                        ListNode *node1 = create_node('a', 'A'); // Example values
-                        insert(node1, list, false);
-                        root = insertNode(root, "hello", "<html><body><h1>Hello, World!</h1></body></html>");
+                    valueIndex = 0;
+                }
+                capturing_value = 1; // Set flag to start capturing after '='
+                continue; // Move to the next character to skip '='
+            }
+
+            if (capturing_value) {
+                // Capture values after '='
+                if (isalnum(line[i]) || line[i] == '_') { // Accept underscore as part of variable names
+                    value[valueIndex++] = line[i];
+                } else {
+                    if (valueIndex > 0) {
+                        value[valueIndex] = '\0'; // Null-terminate the string
+                        printf("Value after '=': %s\n", value);
+                        valueIndex = 0;
+                        capturing_value = 0; // Stop capturing after a complete value
+                        captured = 1;
+                        char key;
+                        key = get_last_value();
+                        Node *node
+                        
                     }
-                    valueIndex = 0; // Reset the index for the next sequence
+                }
+            } else {
+                // Capture alphabetic sequences
+                if (isalpha(line[i])) {
+                    value[valueIndex++] = line[i];
+                } else {
+                    if (valueIndex > 0) {
+                        value[valueIndex] = '\0'; // Null-terminate the string
+                        printf("Alphabetic sequence: %s\n", value);
+                        if (value != "for" && value != "in" && value != "print"){
+                            add_value(value);
+                            printf("Added Value");
+                        } 
+                        valueIndex = 0;
+                    }
                 }
             }
         }
 
-        // If the line ends with an alphabetic sequence, print it
+        // Final check at the end of the line
         if (valueIndex > 0) {
-            value[valueIndex] = '\0'; // Null-terminate the string
-            printf("Alphabetic sequence: %s\n", value);
+            value[valueIndex] = '\0';
+            if (capturing_value) {
+                printf("Value after '=': %s\n", value);
+            } else {
+                printf("Alphabetic sequence: %s\n", value);
+            }
         }
     }
 
