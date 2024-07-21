@@ -38,76 +38,6 @@ typedef struct {
 } TOKEN;
 
 
-typedef struct ListNode {
-    char* value;
-    struct ListNode* next;
-} ListNode;
-
-ListNode* head = NULL;
-
-
-void add_value(char* value) {
-    ListNode* new_node = (ListNode*)malloc(sizeof(Node));
-    new_node->value = strdup(value);
-    new_node->next = NULL;
-
-    if (head == NULL) {
-        head = new_node;
-    } else {
-        ListNode* current = head;
-        while (current->next != NULL) {
-            current = current->next;
-        }
-        current->next = new_node;
-    }
-}
-
-
-char* get_last_value() {
-    if (head == NULL) {
-        printf("Linked list is empty.\n");
-        return NULL;
-    }
-
-    ListNode* current = head;
-    while (current->next != NULL) {
-        current = current->next;
-    }
-
-    return current->value;
-}
-
-
-// Function prototypes
-void process_value(char *value, int *valueIndex, int *capturing_value, int *captured);
-
-int check_for_keyword(char *value);
-
-
-
-// Function to process the captured value
-void process_value(char *value, int *valueIndex, int *capturing_value, int *captured) {
-    if (*valueIndex > 0) {
-        value[*valueIndex] = '\0';  // Null-terminate the string
-        if (*capturing_value) {
-            printf("Value after '=': %s\n", value);
-            char* key = get_last_value();
-            Node* node = NULL;  // Initialize the node
-            node = insertNode(node, key, value);
-            printf("Key %s, Value %s\n", key, value);
-            *capturing_value = 0;  // Stop capturing after a complete value
-            *captured = 1;
-        } else {
-            printf("Alphabetic sequence: %s\n", value);
-            int result = check_for_keyword(value);
-            if 
-
-        }
-        *valueIndex = 0;  // Reset the index for next usage
-    }
-}
-
-// A
 
 int main() {
     FILE *file;
@@ -120,7 +50,6 @@ int main() {
         return 1;
     }
 
-
     // Read the file line by line
     while (fgets(line, sizeof(line), file)) {
         char value[256] = {0};
@@ -129,22 +58,13 @@ int main() {
         int captured = 0;
 
         for (int i = 0; line[i] != '\0'; i++) {
-            if (line[i] == '=') {
-                process_value(value, &valueIndex, &capturing_value, &captured);
-                capturing_value = 1; // Set flag to start capturing after '='
-            } else if (capturing_value) {
-                // Capture values after '='
-                if (isalnum(line[i]) || line[i] == '_') { // Accept underscore as part of variable names
-                    value[valueIndex++] = line[i];
-                } else {
-                    process_value(value, &valueIndex, &capturing_value, &captured);
-                }
+            if (isalnum(line[i]) || line[i] == '_') { // Accept alphanumeric characters and underscore
+                value[valueIndex++] = line[i];
             } else {
-                // Capture alphabetic sequences
-                if (isalpha(line[i])) {
-                    value[valueIndex++] = line[i];
-                } else {
-                    process_value(value, &valueIndex, &capturing_value, &captured);
+                if (valueIndex > 0) {
+                    value[valueIndex] = '\0'; // Null-terminate the captured sequence
+                    printf("Sequence: %s\n", value);
+                    valueIndex = 0; // Reset for next capture
                 }
             }
         }
@@ -152,11 +72,7 @@ int main() {
         // Final check at the end of the line
         if (valueIndex > 0) {
             value[valueIndex] = '\0';
-            if (capturing_value) {
-                printf("Value after '=': %s\n", value);
-            } else {
-                printf("Alphabetic sequence: %s\n", value);
-            }
+            printf("Sequence: %s\n", value);
         }
     }
 
