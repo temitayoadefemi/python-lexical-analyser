@@ -77,9 +77,6 @@ char* get_last_value() {
     return current->value;
 }
 
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
 
 // Function prototypes
 void process_value(char *value, int *valueIndex, int *capturing_value, int *captured);
@@ -119,6 +116,7 @@ int main() {
         return 1;
     }
 
+    
     // Read the file line by line
     while (fgets(line, sizeof(line), file)) {
         char value[256] = {0};
