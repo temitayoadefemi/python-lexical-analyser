@@ -3,6 +3,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#define MAX_TOKENS 1000
+
+
 typedef enum {
     _IDENTIFIER_,
     _KEYWORD_,
@@ -17,11 +20,14 @@ typedef struct {
     char str[256];
 } TOKEN;
 
+TOKEN tokens[MAX_TOKENS];
+int token_count = 0;
+
 // Function prototypes
 TYPE determine_type(const char *token, TOKEN *t);
-void process_line(char *line);
+void lexer(char *line);
 
-int main() {
+int main(int argc, char *argv[]) {
     FILE *file;
     char line[256];
 
@@ -34,64 +40,68 @@ int main() {
 
     // Read the file line by line
     while (fgets(line, sizeof(line), file)) {
-        process_line(line);
+        lexer(line);
     }
 
+    for (int i = 0; i < token_count; i++) {
+        printf("Token Value: %s\n", tokens[i].str);
+    }
     // Close the file
     fclose(file);
 
     return 0;
 }
 
-void process_line(char *line) {
+void lexer(char *line) {
     const char *delimiters = " \t\n";
     const char *punctuations = ":()";
     char token[256] = {0};
+
     int tokenIndex = 0;
 
     for (int i = 0; line[i] != '\0'; i++) {
         char ch = line[i];
 
         // Check if the character is a delimiter
-        if (strchr(delimiters, ch) != NULL) {
+        if (strchr(delimiters, ch) != NULL){
             if (tokenIndex != 0) {
                 token[tokenIndex] = '\0';
                 TOKEN t;
                 determine_type(token, &t);
-                printf("Token: '%s', Type: %d\n", token, t.token_type);
+                tokens[token_count++] = t;
                 tokenIndex = 0;
                 token[0] = '\0';
             }
-        } else if (strchr(punctuations, ch) != NULL) {
-            // Output the current token if there is one
+        }
+
+        else if (strchr(punctuations, ch) != NULL) {
             if (tokenIndex != 0) {
                 token[tokenIndex] = '\0';
                 TOKEN t;
                 determine_type(token, &t);
-                printf("Token: '%s', Type: %d\n", token, t.token_type);
+                tokens[token_count++] = t;
                 tokenIndex = 0;
             }
 
-            // Output the punctuation as a separate token
             token[0] = ch;
             token[1] = '\0';
             TOKEN t;
             determine_type(token, &t);
-            printf("Token: '%s', Type: %d\n", token, t.token_type);
+            tokens[token_count++] = t;
+
         } else {
             // Add character to token
             token[tokenIndex++] = ch;
         }
     }
 
-    // Check if there's a token left to output at the end of the line
     if (tokenIndex != 0) {
         token[tokenIndex] = '\0';
         TOKEN t;
         determine_type(token, &t);
-        printf("Token: '%s', Type: %d\n", token, t.token_type);
+        tokens[token_count++] = t;
+        }   
     }
-}
 
 TYPE determine_type(const char *token, TOKEN *t) {
     static const char *keywords[] = {"for", "in", "print", NULL};
