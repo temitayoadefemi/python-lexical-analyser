@@ -20,6 +20,13 @@ typedef struct {
     char str[256];
 } TOKEN;
 
+typedef struct {
+    Node *val;
+    Node *right;
+    Node *left;
+} Node;
+
+
 TOKEN tokens[MAX_TOKENS];
 int token_count = 0;
 
@@ -51,6 +58,7 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
 
 void lexer(char *line) {
     const char *delimiters = " \t\n";
@@ -141,4 +149,11 @@ TYPE determine_type(const char *token, TOKEN *t) {
     t->token_type = _IDENTIFIER_;
     strcpy(t->str, token);
     return _IDENTIFIER_;
+}
+
+Node* init_node(Node *node) {
+    node = malloc(sizeof(Node));
+    node->left = NULL;
+    node->right = NULL;
+    return node;
 }
